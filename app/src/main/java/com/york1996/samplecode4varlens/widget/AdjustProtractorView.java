@@ -35,10 +35,9 @@ public class AdjustProtractorView extends View {
     private int mDivisionCount = 180; // 整个半圆刻度线的总数
     private int mMajorDivisionEvery = 5; // 每隔几个刻度显示数字
 
-    private float mMinAngle = 0f; // 最小角度
+    private float mMinAngle = 30f; // 最小角度
     private float mMaxAngle = 180f; // 最大角度
 
-    private float mMinValue = 0;
     private float mMaxValue = 180;
 
     private float mCurrentValue = mDivisionCount / 2f;
@@ -78,21 +77,15 @@ public class AdjustProtractorView extends View {
         mListener = listener;
     }
 
-    public float getCurrentValue() {
+    public float getValue() {
         return mCurrentValue;
     }
 
-    public void setCurrentValue(float currentValue) {
-        setViewRotation(mDivisionCount / 2f - currentValue);
+    public void setValue(float currentValue) {
+
     }
 
-    public void setAngleRange(float minAngle, float maxAngle) {
-        mMinAngle = minAngle;
-        mMaxAngle = maxAngle;
-    }
-
-    public void setValueRange(float minValue, float maxValue) {
-        mMinValue = minValue;
+    public void setMaxValue(float maxValue) {
         mMaxValue = maxValue;
     }
 
@@ -115,18 +108,15 @@ public class AdjustProtractorView extends View {
     }
 
     private void setViewRotation(float rotation) {
-        Log.d(TAG, "setViewRotation = " + rotation);
-        invalidate();
-        float currentValue = Math.round(mDivisionCount / 2f - rotation);
-        if (currentValue > mMaxValue || currentValue < mMinValue) {
+        if (rotation > 90 || rotation < -90) {
             return;
         }
-        mCurrentValue = currentValue;
-        mCurrentCustomRotation = rotation;
-
-        if (mListener != null) {
-            mListener.onValueChange(mCurrentValue);
+        if (getValue() > mMaxValue || getValue() < 0) {
+            return;
         }
+        Log.d(TAG, "setViewRotation = " + rotation);
+        mCurrentCustomRotation = rotation % 360;
+        invalidate();
     }
 
     @Override
@@ -152,7 +142,7 @@ public class AdjustProtractorView extends View {
             if (currentAngle < mMinAngle || currentAngle > mMaxAngle) {
                 continue;
             }
-            double angleRadians= Math.toRadians(90 - currentAngle); // 求相对于垂直方向的角度
+            double angleRadians = Math.toRadians(90 - currentAngle); // 求相对于垂直方向的角度
             float startX = (float) (mCenterX - mRadius * Math.cos(angleRadians));
             float startY = (float) (mCenterY + mRadius * Math.sin(angleRadians));
 
@@ -165,12 +155,13 @@ public class AdjustProtractorView extends View {
             // 分隔个数对刻度线和文字进行特殊绘制
             if (i % mMajorDivisionEvery == 0) {
                 // 文字绘制
-                String labelText = String.valueOf(i);
+                float showingValue = i * (mMaxValue / mDivisionCount);
+                String labelText = String.valueOf(showingValue);
                 mTextPaint.setColor(Color.RED);
                 mTextPaint.getTextBounds(labelText, 0, labelText.length(), mTextBounds);
 
                 // 计算数字位置的坐标并绘制数字
-                double angleRotationRadians= Math.toRadians(90 - currentAngle - mCurrentCustomRotation);
+                double angleRotationRadians = Math.toRadians(90 - currentAngle - mCurrentCustomRotation);
                 float textX = mCenterX - (mRadius - 50) * (float) Math.cos(angleRotationRadians);
                 float textY = mCenterY + (mRadius - 50) * (float) Math.sin(angleRotationRadians) + mTextBounds.height() / 2f;
                 canvas.rotate(-mCurrentCustomRotation, mCenterX, mCenterY);
@@ -179,11 +170,29 @@ public class AdjustProtractorView extends View {
 
                 // 刻度线延长
                 endX = (float) (mCenterX - (mRadius - 30) * Math.cos(angleRadians));
-                endY =  (float) (mCenterY + (mRadius - 30) * Math.sin(angleRadians));
+                endY = (float) (mCenterY + (mRadius - 30) * Math.sin(angleRadians));
                 mProtractorPaint.setColor(Color.RED);
+            }
+
+            // 获取水平方向的值
+            if (Math.abs(90 - currentAngle - mCurrentCustomRotation) < mDivisionCount / 180f) {
+                notifyValueChange(i * (mMaxValue / mDivisionCount));
             }
             canvas.drawLine(startX, startY, endX, endY, mProtractorPaint);
         }
         canvas.restore();
+    }
+
+    private void notifyValueChange(float value) {
+        if (getValue() == value) {
+            return;
+        }
+        if (value == mMaxValue && mCurrentCustomRotation > 0) {
+            value = 0;
+        }
+        mCurrentValue = value;
+        if (mListener != null) {
+            mListener.onValueChange(value);
+        }
     }
 }

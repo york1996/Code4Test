@@ -23,9 +23,7 @@ public class MainActivity extends AppCompatActivity {
         // 功能选择弹窗按钮
         mCustomSettingWindowButton = findViewById(R.id.btn_pop_setting);
         mCustomSettingWindowButton.setFunctionCheck(CustomSettingWindowButton.FUNCTION_TYPE_1, true);
-        mCustomSettingWindowButton.setOnClickListener(v -> {
-            mCustomSettingWindowButton.showSettingWindow();
-        });
+        mCustomSettingWindowButton.setOnClickListener(v -> mCustomSettingWindowButton.showSettingWindow());
         mCustomSettingWindowButton.setSettingWindowListener(new CustomSettingWindowButton.SettingWindowListener() {
             @Override
             public void onWindowShowingStateChange(boolean showing) {
