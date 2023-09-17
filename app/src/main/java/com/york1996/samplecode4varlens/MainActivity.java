@@ -3,14 +3,17 @@ package com.york1996.samplecode4varlens;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
-import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.york1996.samplecode4varlens.widget.CustomSettingWindowButton;
+import com.york1996.samplecode4varlens.widget.AdjustProtractorView;
 
 public class MainActivity extends AppCompatActivity {
 
     private CustomSettingWindowButton mCustomSettingWindowButton;
+    private AdjustProtractorView mAdjustProtractorView;
+    private TextView mAdjustValueTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,5 +40,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 半圆调节视图
+        mAdjustValueTextView = findViewById(R.id.text_view_adjust_value);
+        mAdjustProtractorView = findViewById(R.id.view_adjust);
+        mAdjustProtractorView.setProtractorAdjustViewChangeListener(new AdjustProtractorView.ProtractorAdjustViewChangeListener() {
+            @Override
+            public void onValueChange(float currentValue) {
+                mAdjustValueTextView.setText(String.valueOf(currentValue));
+            }
+        });
     }
 }

@@ -11,4 +11,18 @@
         android:layout_height="60dp"
         android:layout_gravity="left|center"/>
 
+    <com.york1996.samplecode4varlens.widget.AdjustProtractorView
+        android:id="@+id/view_adjust"
+        android:layout_width="201dp"
+        android:layout_height="388dp"
+        android:layout_gravity="right|center" />
+
+    <TextView
+        android:id="@+id/text_view_adjust_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="value here"
+        android:layout_gravity="center|bottom"/>
+
 </FrameLayout>
