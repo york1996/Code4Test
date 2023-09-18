@@ -80,10 +80,6 @@ public class AdjustProtractorView extends View {
         return mCurrentValue;
     }
 
-    public void setValue(float currentValue) {
-
-    }
-
     public void setMaxValue(float maxValue) {
         mMaxValue = maxValue;
     }
