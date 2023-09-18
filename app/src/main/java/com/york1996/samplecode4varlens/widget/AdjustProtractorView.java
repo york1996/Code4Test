@@ -32,15 +32,14 @@ public class AdjustProtractorView extends View {
     private float mStartAngle;
     private float mTouchDownViewRotation;
 
-    private int mDivisionCount = 180; // 整个半圆刻度线的总数
+    private int mDivisionCount = 90; // 整个半圆刻度线的总数
     private int mMajorDivisionEvery = 5; // 每隔几个刻度显示数字
 
-    private float mMinAngle = 30f; // 最小角度
+    private float mMinAngle = 0f; // 最小角度
     private float mMaxAngle = 180f; // 最大角度
 
     private float mMaxValue = 180;
-
-    private float mCurrentValue = mDivisionCount / 2f;
+    private float mCurrentValue = mMaxValue / 2f;
     private float mCurrentCustomRotation = 0;
 
     public AdjustProtractorView(Context context) {
@@ -108,15 +107,17 @@ public class AdjustProtractorView extends View {
     }
 
     private void setViewRotation(float rotation) {
-        if (rotation > 90 || rotation < -90) {
-            return;
-        }
         if (getValue() > mMaxValue || getValue() < 0) {
             return;
         }
-        Log.d(TAG, "setViewRotation = " + rotation);
-        mCurrentCustomRotation = rotation % 360;
+        rotation = (rotation + 360) % 360; // 角度范围0-360
+        if (rotation > 90 && rotation < 270) {
+            return;
+        }
+        mCurrentCustomRotation = rotation;
+        Log.d(TAG, "setViewRotation = mCurrentCustomRotation = " + mCurrentCustomRotation + " Value = " + calculateValue());
         invalidate();
+        notifyValueChange(calculateValue());
     }
 
     @Override
@@ -156,7 +157,7 @@ public class AdjustProtractorView extends View {
             if (i % mMajorDivisionEvery == 0) {
                 // 文字绘制
                 float showingValue = i * (mMaxValue / mDivisionCount);
-                String labelText = String.valueOf(showingValue);
+                String labelText = String.valueOf((int) Math.round(showingValue));
                 mTextPaint.setColor(Color.RED);
                 mTextPaint.getTextBounds(labelText, 0, labelText.length(), mTextBounds);
 
@@ -173,26 +174,30 @@ public class AdjustProtractorView extends View {
                 endY = (float) (mCenterY + (mRadius - 30) * Math.sin(angleRadians));
                 mProtractorPaint.setColor(Color.RED);
             }
-
-            // 获取水平方向的值
-            if (Math.abs(90 - currentAngle - mCurrentCustomRotation) < mDivisionCount / 180f) {
-                notifyValueChange(i * (mMaxValue / mDivisionCount));
-            }
             canvas.drawLine(startX, startY, endX, endY, mProtractorPaint);
         }
         canvas.restore();
     }
 
     private void notifyValueChange(float value) {
-        if (getValue() == value) {
-            return;
-        }
-        if (value == mMaxValue && mCurrentCustomRotation > 0) {
-            value = 0;
-        }
         mCurrentValue = value;
         if (mListener != null) {
             mListener.onValueChange(value);
         }
+    }
+
+    private float calculateValue() {
+        float baseValue = mMaxValue / 2;
+        float protractorLength = (float) (mRadius * Math.PI);
+        if (mCurrentCustomRotation > 270) {
+            // 加
+            float rotationLength = protractorLength * ((360 - mCurrentCustomRotation) / 180);
+            return baseValue + mMaxValue * (rotationLength / protractorLength);
+        } else if (mCurrentCustomRotation <= 90 && mCurrentCustomRotation >= 0) {
+            // 减
+            float rotationLength = protractorLength * (mCurrentCustomRotation / 180);
+            return  baseValue - mMaxValue * (rotationLength / protractorLength);
+        }
+        return 0;
     }
 }
